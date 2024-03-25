@@ -70,6 +70,34 @@ int checkUsername(char *username){
     return 1;
 }
 
+int checkEmail(char *email){
+    if(strcmp(email, "0") == 0){
+        puts("");
+        beforeRegister();
+    }
+
+    if(strlen(email) < 6 || strlen(email) > 36){
+        puts("Username length must be between 3-36 characters!");
+        printf("Press Enter To Continue"); getchar();
+        return 0;
+    }
+
+    if(!isalpha(email[0])){
+        puts("First character of email should be a letter.");
+        printf("Press Enter To Continue"); getchar();
+        return 0;
+    }
+
+    for(int i = 0; i < strlen(email); i++){
+        if(email[i] == '#'){
+            puts("Email can't contain a # symbol");
+            printf("Press Enter To Continue"); getchar();
+            return 0;
+        }
+        
+    }
+}
+
 void registerUser(){
     char username[50];
     char email[100];
@@ -90,8 +118,6 @@ void registerUser(){
     printf("Password (0 To Exit) : ");
     scanf("%99s", password);
     if(checkPassword(password) == 0) registerUser();
-
-
 }
 
 void beforeRegister(){
