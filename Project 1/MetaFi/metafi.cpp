@@ -77,7 +77,7 @@ int checkEmail(char *email){
     }
 
     if(strlen(email) < 6 || strlen(email) > 36){
-        puts("Username length must be between 3-36 characters!");
+        puts("Username length must be between 6-36 characters!");
         printf("Press Enter To Continue"); getchar();
         return 0;
     }
@@ -89,13 +89,87 @@ int checkEmail(char *email){
     }
 
     for(int i = 0; i < strlen(email); i++){
+        int atCount = 0;
         if(email[i] == '#'){
             puts("Email can't contain a # symbol");
             printf("Press Enter To Continue"); getchar();
             return 0;
+        } if(email[i] == ' '){
+            puts("Email can't contain any space");
+            printf("Press Enter To Continue"); getchar();
+            return 0;
+        } if(email[i] == '@'){
+            atCount++;
+        } 
+        //validate if email has domain, ends with .com, unique (in hash table and file), contains only alphanumeric character
+
+        if(atCount > 1){
+            puts("There can only be one @ in your email");
+            printf("Press Enter To Continue"); getchar();
+            return 0;
         }
-        
     }
+
+    return 1;
+}
+
+int checkPassword(char *password){
+    if(strcmp(password, "0") == 0){
+        puts("");
+        beforeRegister();
+    }
+
+    if(strlen(password) < 8 || strlen(password) > 36){
+        puts("Username length must be between 8-36 characters!");
+        printf("Press Enter To Continue"); getchar();
+        return 0;
+    }
+
+    int countAlpha = 0;
+    int countNum = 0;
+    for(int i = 0; i < strlen(password); i++){
+        if(isalpha(password[i])){
+            countAlpha++;
+        } else if(isdigit(password[i])){
+            countNum++;
+        } else{
+            puts("Password cannot contain special symbols");
+            printf("Press Enter To Continue"); getchar();
+            return 0;
+        }
+    }
+
+    if(countAlpha == 0){
+        puts("Password must contain at least one alphabet or num");
+        printf("Press Enter To Continue"); getchar();
+        return 0;
+    }
+
+    return 1;
+}
+
+void writeToFile(char *username, char *email, char *password){
+    FILE* fpWrite = fopen("user.txt", "a");
+    fprintf(fpWrite,"%s#%s#%s#10000", username, email, password);
+    fclose(fpWrite);
+}
+
+void usernameInput(char *username){
+    printf("Username (0 To Exit) : ");
+    scanf("%49s", username);
+    if(checkUsername(username) == 0) usernameInput(username);
+}
+
+void emailInput(char *email){
+    printf("Email (0 To Exit) : ");
+    scanf("%99s", email);
+    if(checkEmail(email) == 0) emailInput(email);
+}
+
+void passwordInput(char *password){
+    printf("Password (0 To Exit) : ");
+    scanf("%99s", password);
+    if(checkPassword(password) == 0) passwordInput(password);
 }
 
 void registerUser(){
@@ -104,23 +178,15 @@ void registerUser(){
     char password[100];
     system("cls");
 
-    //Username input
-    printf("Username (0 To Exit) : ");
-    scanf("%49s", username);
-    if(checkUsername(username) == 0) registerUser();
+    usernameInput(username);
+    emailInput(email);
+    passwordInput(password);
 
-    //Email input
-    printf("Email (0 To Exit) : ");
-    scanf("%99s", email);
-    if(checkEmail(email) == 0) registerUser();
-    
-    //Password Input
-    printf("Password (0 To Exit) : ");
-    scanf("%99s", password);
-    if(checkPassword(password) == 0) registerUser();
+    writeToFile(username, email, password);   
 }
 
 void beforeRegister(){
+    system("cls");
     puts("Meta-Fi - Welcome");
     puts("--------------------");
     puts("1. Log in to trade");
