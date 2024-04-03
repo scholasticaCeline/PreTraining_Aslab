@@ -32,6 +32,7 @@ struct Account{
     Node *candleSticks;
     Account *next, *prev;
 } *table[size], *tHead[size], *tTail[size];
+Account *currUser = NULL;
 
 //TABLE
 Account *createTable(const char *username, const char *email, const char *password){
@@ -66,31 +67,39 @@ int searchHash(const char *email) {
     return 0;
 }
 
-void insertTable(const char *username, const char *email, const char *password){
+void insertTable(const char *username, const char *email, const char *password) {
     Account *temp = createTable(username, email, password);
     int index = hashUsername(username);
 
-    if(!tHead[index])  tHead[index] = tTail[index] = temp;
-    else{
-        if(strcmp(tHead[index]->username, username) > 0){ 
-            temp->next = tHead[index];
-            tHead[index]->prev = temp;
-            tHead[index] = temp;
-        } else if(strcmp(tTail[index]->username, username) <= 0){ 
+    if (!tHead[index]) {
+        tHead[index] = tTail[index] = temp;
+    } else {
+        Account *curr = tHead[index];
+        while (curr) {
+            if (strcmp(curr->username, username) > 0) {
+                if (curr == tHead[index]) {
+                    temp->next = curr;
+                    curr->prev = temp;
+                    tHead[index] = temp;
+                } else {
+                    temp->prev = curr->prev;
+                    temp->next = curr;
+                    curr->prev->next = temp;
+                    curr->prev = temp;
+                }
+                break;
+            }
+            curr = curr->next;
+        }
+
+        if (!curr) {
             tTail[index]->next = temp;
             temp->prev = tTail[index];
             tTail[index] = temp;
-        } else{ 
-            Account *curr = tHead[index]->next;
-            while(curr && strcmp(curr->username,username) <= 0) curr = curr->next;
-
-            curr->prev->next = temp;
-            temp->prev = curr->prev;
-            temp->next = curr;
-            curr->prev = temp;
         }
     }
 }
+
 
 //LL
 Node *createNode(int openPrice, int closedPrice, int highest, int lowest){

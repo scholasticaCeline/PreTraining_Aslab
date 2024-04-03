@@ -2,9 +2,9 @@
 #include <string.h>
 #include <stdlib.h>
 #include <ctype.h>
+#include <time.h>
 #include <unistd.h>
 #include "logo.cpp"
-#include "menu.cpp"
 #include "dataStruct.cpp"
 
 #define RED "\x1b[31m"
@@ -21,11 +21,10 @@ int checkUsername(char *username);
 int checkEmail(char *email);
 int checkPassword(char *password);
 void registerUser();
-void writeToFile(char *username, char *email, char *password);
+void writeToFile(char *username, char *email, char *password, long int price);
 void usernameInput(char *username);
 void emailInput(char *email);
 void passwordInput(char *password);
-
 
 //REGISTER PAGE
 void beforeRegister(){
@@ -108,13 +107,13 @@ int checkEmail(char *email) {
     }
 
     if(strlen(email) < 6 || strlen(email) > 36) {
-        printf(RED"Email length must be between 6-36 characters!\n"RESET);
+        printf("Email length must be between 6-36 characters!\n"RESET);
         printf("Press Enter To Continue"); getchar();
         return -1;
     }
 
     if(!isalpha(email[0])) {
-        printf(RED"First character of email should be a letter.\n"RESET);
+        printf("First character of email should be a letter.\n"RESET);
         printf("Press Enter To Continue"); getchar();
         return -1;
     }
@@ -124,12 +123,12 @@ int checkEmail(char *email) {
     int dotCount = 0;
     for(int i = 0; i < lenEmail; i++) {
         if(email[i] == '#') {
-            printf(RED"Email can't contain a # symbol\n"RESET);
+            printf("Email can't contain a # symbol\n"RESET);
             printf("Press Enter To Continue"); getchar();
             return -1;
         } 
         if(email[i] == ' ') {
-            printf(RED"Email can't contain any space\n"RESET);
+            printf("Email can't contain any space\n"RESET);
             printf("Press Enter To Continue"); getchar();
             return -1;
         } 
@@ -140,20 +139,20 @@ int checkEmail(char *email) {
             dotCount++;
         }
         if(!isalnum(email[i]) && email[i] != '@' && email[i] != '.') {
-            printf(RED"Email can only contain alphanumeric characters, @, and .\n"RESET);
+            printf("Email can only contain alphanumeric characters, @, and .\n"RESET);
             printf("Press Enter To Continue"); getchar();
             return -1;
         }
     }
 
     if(atCount != 1) {
-        printf(RED"There must only one @ in email\n"RESET);
+        printf("There must only one @ in email\n"RESET);
         printf("Press Enter To Continue"); getchar();
         return -1;
     }
 
     if(dotCount == 0) {
-        printf(RED"Email must contain a dot\n"RESET);
+        printf("Email must contain a dot\n"RESET);
         printf("Press Enter To Continue"); getchar();
         return -1;
     }
@@ -183,7 +182,6 @@ int checkEmail(char *email) {
         printf("Press Enter To Continue"); getchar();
         return -1;
     }
-    // (placeholder) Check if email is unique (in hash table)
 
     return 1;
 }
@@ -327,35 +325,38 @@ void loginAccount(){
         printf("Press Enter to Continue\n"); getchar();
         loginAccount();
     }
+    fclose(fp);
 }
 
+
+//TRADE
 void guidePrint(){
-    puts("What Is Forex?");
+    puts(BLUE"What Is Forex?"RESET);
     puts("\"Forex\", short for foreign exchange, is a global decentralized marketplace for trading currencies.");
     puts("In forex trading, participants buy one currency by selling another currency simultaneously, with the aim of profiting from fluctuations in exchange rates.");
     puts("It is one of the largest and most liquid financial markets in the world, operating 24 hours a day, five days a week.\n");
 
-    puts("What Is Candle Stick?");
+    puts(YELLOW"What Is Candle Stick?"RESET);
     puts("\"Candle Stick\" in charts are a type of financial chart used to represent price movements in trading markets, including forex.");
     puts("They visually display the open, high, low, and close prices for a specific period.");
     puts("If the close price is higher than the open price, the candle color will be green.");
     puts("If the close price is less than the open price, the candle color will be red.");
     puts("Shadow or tick is the highest and the lowest price of a candle.\n");
 
-    puts("What Is Position?");
+    puts(MAGENTA"What Is Position?"RESET);
     puts("\"Position\" in forex trading refers to where we want to enter the market at certain price point.\n");
 
-    puts("What Is Long?");
+    puts(GREEN"What Is Long?"RESET);
     puts("\"Long\" in forex trading refers to a trading position where a trader buys a currency pair with the expectation that its value will increase over time.\n");
 
-    puts("What Is Short?");
+    puts(YELLOW"What Is Short?"RESET);
     puts("\"Short\" in forex trading refers to a trading position where a trader sells a currency pair with the expectation that its value will decrease over time.\n");
 
-    puts("What is Take Profit?");
+    puts(GREEN"What is Take Profit?"RESET);
     puts("\"Take Profit\" in forex trading refers to where we will leave the market at the specified price point.");
     puts("Our position will automatically close after the market price hits our take profit price.\n");
 
-    puts("What Is Stop Loss?");
+    puts(RED"What Is Stop Loss?"RESET);
     puts("\"Stop Loss\" in forex trading refers to where we will leave the market at the specified price point.");
     puts("It's used to make sure that we don't lose all of our money and many more.");
     puts("Same like take profit, our position will automatically close after the market price hits our stop loss price.\n");
@@ -363,12 +364,157 @@ void guidePrint(){
     printf("Press Enter To Continue"); getchar();
 }
 
-void trade(){
+int randomRandom(int x, int y){
+    srand(time(0));
+    return x + rand() % (y - x);
+}
 
+void display(){
+    printf("╔═══════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╦═════╗\n");
+
+    struct Node* curr = head;
+    while (curr != NULL) {
+        printf("║ Open: %3d, Close: %3d, High: %3d, Low: %3d", curr->openPrice, curr->closedPrice, curr->highest, curr->lowest);
+
+        for (int i = 0; i < 79; i++) {
+            if (curr->highest == curr->closedPrice) {
+                if (i == 30) {
+                    printf("│");
+                } else {
+                    printf(" ");
+                }
+            } else if (curr->highest == curr->openPrice) {
+                if (i == 30) {
+                    printf("│");
+                } else {
+                    printf("-");
+                }
+            } else if (curr->lowest == curr->closedPrice) {
+                if (i == 30) {
+                    printf("│");
+                } else {
+                    printf(" ");
+                }
+            } else if (curr->lowest == curr->openPrice) {
+                if (i == 30) {
+                    printf("│");
+                } else {
+                    printf("-");
+                }
+            } else {
+                printf(" ");
+            }
+        }
+
+        if (curr->openPrice == curr->closedPrice) {
+            printf("██");
+        } else if (curr->openPrice == curr->closedPrice + 10) {
+            printf("│█");
+        } else {
+            printf("  ");
+        }
+
+        printf(" ║ %3d ║\n", curr->closedPrice);
+
+        curr = curr->next;
+    }
+    printf("╠══════════════════════════════════════╩══════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╝\n");
+    menuTrade();   
+}
+
+void generateRandom(){
+    srand(time(0));
+    int open, close, high, low;
+    int currentPrice = 100; //anggep aja initial pricenya 100
+    int random = rand() % 100;
+    
+    open = currentPrice;
+    if(random < 10) close = open;
+    else{
+        int highOrNo = rand() % 2;
+        if(highOrNo == 0){
+            close = open + randomRandom(10, 60);
+        } else{
+            close = open - randomRandom(10, 60);
+        }
+    }
+
+    if(close > open){ //for highest
+        if(random < 30){
+            high = close;
+        } else{
+            high = close + randomRandom(0, 40);
+        }
+    } else{
+        random = rand() % 100;
+        if(random < 30){
+            high = open;
+        } else{
+            high = open + randomRandom(0, 40);
+        }
+    }
+
+    if(close > open){ //for lowest
+        if(random < 30){
+            low = open;
+        } else{
+            low = open + randomRandom(0, 40);
+        }
+    } else{
+        random = rand() % 100;
+        if(random < 30){
+            low = close;
+        } else{
+            low = close + randomRandom(0, 40);
+        }
+    }
+    
+    currentPrice = close;
+    pushTail(open, close, high, low);
+}
+
+void trade(){
+    for(int i = 0; i < 20; i++){
+        generateRandom();
+    }
+
+    display();
+}
+
+void menuTrade(){
+    printf("Welcome To METAFI, %s\n", currUser->username);
+    puts("1. New Day");
+    puts("2. Previous");
+    puts("3. Next");
+    puts("4. Long");
+    puts("5. Short");
+    puts("6. Logout");
+    printf(">> ");
+    int choice;
+    scanf("%d", &choice); getchar();
+    if(choice == 1){
+        generateRandom();
+    } else if(choice == 2){
+        
+    }
 }
 
 void viewHistory(){
-
+    if (hHead == NULL) {
+        printf("No Trade History.\n");
+        printf("Press Enter to Continue"); getchar();
+        return;
+    }
+    
+    int count = 1;
+    if (currUser != NULL) {
+    History *curr = currUser->history;
+        while (curr != NULL) {
+            printf("No: %d\n", count++);
+            printf("Value\t: %d\nPosition\t: %d\nProfit\t: %d\nStop Loss\t: %d\nReward: %d\n", curr->value, curr->position, curr->profit, curr->stopLoss, curr->reward);
+            curr = curr->next;
+        }
+    }
 }
 
 void afterRegister(){
@@ -385,7 +531,7 @@ void afterRegister(){
     if(choice == 1){
         
     } else if(choice == 2){
-
+        viewHistory();
     } else if(choice == 3){
         guidePrint();
     }
@@ -395,7 +541,9 @@ int main(){
     // printf(ANSI_COLOR_RED "Test\n" ANSI_COLOR_RESET);
     // printf(ANSI_COLOR_GREEN "Test\n" ANSI_COLOR_RESET);
     // printf(RESET);
-    
+    // printf("%c", 216);
+    // printf("%c", 179);
+
     //Before registering
     beforeRegister();
 

@@ -4,6 +4,8 @@
 
 const int size = 10;
 
+void viewAll();
+
 struct Table{
     char title[100];
     char artist[100];
@@ -41,29 +43,31 @@ void insert(const char *title, const char *artist, const char *genre, float rati
     struct Table *temp = createTable(title, artist, genre, rating);
     int index = hash(title);
 
-    if(!tHead[index]){
+    if (!tHead[index]) {
         tHead[index] = tTail[index] = temp;
-    }
-    else{
-        if(tHead[index]->rating < rating){
+    } else {
+        if (tHead[index]->rating < rating) {
             temp->next = tHead[index];
             tHead[index]->prev = temp;
             tHead[index] = temp;
-        } else if(tTail[index]->rating >= rating){
+        } else if (tTail[index]->rating >= rating) {
             tTail[index]->next = temp;
             temp->prev = tTail[index];
             tTail[index] = temp;
-        } else{
-            struct Table *curr = tHead[index]->next;
-            while(curr->rating < rating) curr = curr->next;
+        } else {
+            struct Table *curr = tHead[index];
+            while (curr->next && curr->next->rating >= rating) {
+                curr = curr->next;
+            }
 
-            curr->prev->next = temp;
-            temp->prev = curr->prev;
-            temp->next = curr;
-            curr->prev = temp;
+            temp->next = curr->next;
+            temp->prev = curr;
+            curr->next = temp;
+            temp->next->prev = temp;
         }
     }
 }
+
 
 void add(){
     system("cls");
@@ -118,10 +122,6 @@ void viewAll(){
         while(curr){
             printf("| %-25s | %-24s | %-10s | %-7.2f |\n", curr->title, curr->artist, curr->genre, curr->rating);
             curr = curr -> next;
-
-            if(curr != NULL){
-                printf("|                    |                    |            |         |\n");
-            }
         }
     }
     printf("===============================================================================\n");
@@ -145,21 +145,20 @@ void search(){
     }
 
     char title[100];
-    system("cls");
-    puts("Search Music");
+    viewAll();
+    puts("\nSearch Music");
     puts("================");
     printf("Insert music name you want to search [0 to go back]: ");
     scanf("%[^\n]", title); getchar();
     if(strcmp(title, "0") == 0) return;
     
-    Table *found[size];
     int count = 0;
 
     for (int i = 0; i < size; i++) {
-        Table *curr = tHead[i];
+        Table* curr = tHead[i];
         while (curr) {
             if (strcmp(curr->title, title) == 0) {
-                found[count++] = curr;
+                count++; 
             }
             curr = curr->next;
         }
@@ -167,21 +166,59 @@ void search(){
 
     if (count == 0) {
         printf("\nMusic with title \"%s\" not found!\n", title);
-        printf("\nPress enter to continue..."); 
-        getchar();
+        printf("\nPress enter to continue..."); getchar();
         return;
     }
 
-    printf("\n%d Music(s) Found!\n", count);
-    printf("===================================================================================\n");
-    printf(" No | %-25s | %-24s | %-10s | %-7s |\n", "Title", "Artist Name", "Genre", "Rating");
-    printf("===================================================================================\n");
-
-    for (int i = 0; i < count; i++) {
-        printf(" %d | %-25s | %-24s | %-10s | %-7.2f |\n", i + 1, found[i]->title, found[i]->artist, found[i]->genre, found[i]->rating);
+    int index = 1;
+    printf("Matching records:\n"); 
+    printf("====================================================================================\n");
+    printf("| No | %-25s | %-24s | %-10s | %-7s |\n", "Title", "Artist Name", "Genre", "Rating");
+    printf("====================================================================================\n");
+    for (int i = 0; i < size; i++) {
+        Table* curr = tHead[i];
+        while (curr) {
+            if (strcmp(curr->title, title) == 0) {
+                printf("| %d  | %-25s | %-24s | %-10s | %-7.2f |\n", index++, curr->title, curr->artist, curr->genre, curr->rating);
+            }
+            curr = curr->next;
+        }
     }
-    printf("===================================================================================\n");
+    printf("====================================================================================\n");
+}
 
+void deletes(const char *title){
+    int index = hash(title);
+
+    if(!tHead[index]) return;
+
+    else if(strcmp(tHead[index] -> title, title) == 0){ 
+        if(strcmp(tHead[index]->title, tTail[index]->title) == 0){
+            free(tHead[index]);
+            tHead[index] = tTail[index] = NULL;
+        } else{
+            Table *temp = tHead[index] -> next;
+            temp -> prev = NULL;
+            tHead[index] -> next = NULL;
+            free(tHead[index]);
+            tHead[index] = temp;
+        }
+    } else if(strcmp(tTail[index] -> title, title) == 0){ 
+            Table *temp = tTail[index] -> prev;
+            temp -> next = NULL;
+            tTail[index] -> prev = NULL;
+            free(tTail[index]);
+            tTail[index] = temp;
+    } else{
+        Table* curr = tHead[index] -> next;
+        while(strcmp(curr -> title, title) != 0) curr = curr -> next;
+
+        curr -> prev -> next = curr -> next;
+        curr -> next -> prev = curr -> prev;
+        curr -> prev = NULL;
+        curr -> next = NULL;
+        free(curr);
+    }
 }
 
 void deleteTable(){
@@ -200,23 +237,77 @@ void deleteTable(){
     }
 
     char title[100];
-    printf("Insert music title you want to delete [0 to go back]: ");
+    viewAll();
+    puts("\nDelete Music");
+    puts("==================");
+    printf("\nInsert music title you want to delete [0 to go back]: ");
     scanf("%[^\n]", title); getchar();
     if(strcmp(title, "0") == 0) return;
 
     int found = 0; 
+    int count = 0;
 
     for (int i = 0; i < size; i++) {
         Table* curr = tHead[i];
         while (curr) {
             if (strcmp(curr->title, title) == 0) {
-                found = 1; 
-                printf("Record \"%s\" deleted successfully.\n", curr->title);
-                break;
+                count++; 
+            }
+            curr = curr->next;
+        }
+    }
+
+    if (count == 0) {
+        printf("Music with title \"%s\" not found!\n", title);
+        printf("\nPress enter to continue..."); getchar();
+        return;
+    }
+    int index = 1;
+
+    printf("Matching records:\n"); 
+    printf("====================================================================================\n");
+    printf("| No | %-25s | %-24s | %-10s | %-7s |\n", "Title", "Artist Name", "Genre", "Rating");
+    printf("====================================================================================\n");
+    for (int i = 0; i < size; i++) {
+        Table* curr = tHead[i];
+        while (curr) {
+            if (strcmp(curr->title, title) == 0) {
+                printf("| %d  | %-25s | %-24s | %-10s | %-7.2f |\n", index++, curr->title, curr->artist, curr->genre, curr->rating);
+            }
+            curr = curr->next;
+        }
+    }
+    printf("====================================================================================\n");
+
+    printf("Enter the number of the record you want to delete: ");
+    int choice;
+    scanf("%d", &choice); getchar();
+
+    if (choice < 1 || choice > index) {
+        printf("Invalid choice!\n");
+        printf("\nPress enter to continue..."); getchar();
+        return;
+    }
+
+    for (int i = 0; i < size; i++) {
+        Table* curr = tHead[i];
+        while (curr) {
+            if (strcmp(curr->title, title) == 0) {
+                count++;
+                if (count == choice) {
+                    found = 1; 
+                    printf("Record \"%s\" deleted successfully.\n", curr->title);
+                    deletes(title);
+                    break;
+                }
             }
             curr = curr->next;
         }
         if (found) break; 
+    }
+
+    if (!found) {
+        printf("Invalid choice!\n");
     }
 
     if (!found) {
