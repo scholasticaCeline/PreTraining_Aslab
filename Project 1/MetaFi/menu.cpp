@@ -2,7 +2,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <ctype.h>
-#include "linkedList.cpp"
+// #include "dataStruct.cpp"
 
 void guidePrint(){
     puts("What Is Forex?");
