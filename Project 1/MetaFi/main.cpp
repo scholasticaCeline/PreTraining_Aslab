@@ -500,7 +500,7 @@ void menuTrade(){
 }
 
 void viewHistory(){
-    if (hHead == NULL) {
+    if (hHead == NULL){
         printf("No Trade History.\n");
         printf("Press Enter to Continue"); getchar();
         return;
