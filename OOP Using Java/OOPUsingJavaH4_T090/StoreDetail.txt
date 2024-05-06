@@ -1,0 +1,6 @@
+US123,Glazed Donut,Open
+US456,Filled Donut,Open
+US789,Chocolate Donut,Open
+US123,Glazed Donut,Close
+US456,Filled Donut,Open
+US789,Chocolate Donut,Open
