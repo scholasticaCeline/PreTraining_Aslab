@@ -1,0 +1,33 @@
+Database
+==========================================
+Entity: Tabel
+Attribute: Baris-baris table
+Keys: 
+ - Primary Key: Kolom dgn nilai unik jadi pengenal setiap baris (punya tanda pengenal, unik, contohnya nim) - harus ada satu primary key di tabel
+ - Foreign Key: Kolom yg menunjuk ke arah primary key dari tabel lain (tidak unik, misalnya course yg diambil)
+ - Composite Key: Primary key yang jumlahnya lebih dari 1, contohnya transactionID & productID
+ - Candidate Key: Bisa dijadiin kandidat primary key, contohnya email 
+ - Alternate Key: Hampir sama kyk candidate key
+
+Entity Relation: 
+- One to One: Misalnya table orang dan passport, satu orang hanya punya 1 passport & 1 passport bisa dimiliki 1 orang
+- One to many: Misalnya department dan employee, satu department bisa banyak employee
+- Many to many: Misalnya course dan student, banyak matkul bisa diambil banyak mhs
+
+Multiplicity vs relation (sama aja sih)
+Relation: Hubungan pk & fk
+Multiplicity: Hubungan anggota
+
+ERD: visualisasi database
+
+Normalisasi: penyusunan data dgn efisien utk membangun relasi antar table, menghindari anomali
+Anomali: Inconsistency say insert, update, delete di table
+- Insert anomaly: Contohnya menambahkan course baru tanpa murid (Column lainnya kosong)
+- Update anomaly: Contohnya update alamat murid tapi baris lainnya gak ke-update (kalo murid itu ada lebih dari satu di tabelnya)
+- Delete anomaly: Contohnya delete 1 murid, tapi course ikutan keapus
+
+Tahap normalisasi:
+- UNF: Mengumpulkan data 
+- 1NF: Memisahkan data, cari yg berulang, dan menghilangkan data yg ada kalkulasi
+- 2NF: Delete partial dependency
+- 3NF: Delete transitive dependency, a->b, b->c, a->c
